@@ -157,7 +157,7 @@ installNix() {
 
 	log 'Configuring environment...'
 	# shellcheck disable=SC1091
-	source /etc/zshrc
+	source /etc/bashrc
 }
 
 # Usage: installNixDarwin
@@ -177,14 +177,14 @@ installNixDarwin() {
 	log "Removing redundant nix version..."
 	/usr/bin/sudo -i nix-env -e nix
 
+	log "Configuring environment..."
+	# shellcheck disable=SC1091
+	source /etc/bashrc
+
 	# home-manager is required by the current configuration
 	log "Adding home-manager channel..."
 	nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
 	nix-channel --update
-
-	log "Configuring environment..."
-	# shellcheck disable=SC1091
-	source /etc/zshenv
 }
 
 # Usage installBrew
