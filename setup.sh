@@ -68,10 +68,10 @@ yesno() {
 	fi
 }
 
-# Usage: isRequired NAME EXECUTABLE
+# Usage: tryInstall NAME EXECUTABLE
 #
 # Asks the user permission to install NAME and then runs EXECUTABLE
-isRequired() {
+tryInstall() {
 	local name=${1}
 	local executable=${2}
 
@@ -81,6 +81,21 @@ isRequired() {
 	log "Installing ${name}..."
 	${executable}
 	success "${name} was successfully installed"
+}
+
+# Usage: checkDep NAME CONDITION EXECUTABE
+#
+# Checks CONDITION, if not true asks user to run EXECUTABLE
+checkDep() {
+	local name=${1}
+	local condition=${2}
+	local executable=${3}
+
+	if ! ${condition} -p &>/dev/null; then
+		tryInstall "${name}" "${executable}"
+	else
+		log "${name} detected, skipping install"
+	fi
 }
 
 # Usage: installXcode
@@ -208,30 +223,18 @@ if [[ ! -d "$tmpDir" ]]; then
 fi
 
 # xcode is needed for building most software from source
-if ! /usr/bin/xcode-select -p &>/dev/null; then
-	isRequired 'xcode' 'installXcode'
-else
-	log "xcode detected, skipping install"
-fi
+checkDep 'xcode' '/usr/bin/xcode-select' 'installXcode'
 
 # rosetta is needed for running x86_64 applications
-if ! /usr/bin/pgrep oahd &>/dev/null; then
-	isRequired 'rosetta' 'softwareupdate --install-rosetta'
-else
-	log "rosetta detected, skipping install"
-fi
+checkDep 'rosetta' '/usr/bin/pgrep oahd' 'softwareupdate --install-rosetta'
 
-# a rudimentary check to see if the nix binary is available
-if ! command -v nix &>/dev/null; then
-	isRequired 'nix' 'installNix'
-else
-	log "nix detected, continuing"
-fi
+# nix is needed to configure the entire system
+checkDep 'nix' 'command -v nix' 'installNix'
 
-# a more full-featured check to validate it's actually installed correctly
+# a better check to validate nix is actually installed correctly
 if ! nix doctor &>/dev/null; then
 	error 'nix doctor reports an unhealthy nix installation'
-	isRequired 'nix' 'installNix'
+	tryInstall 'nix' 'installNix'
 
 	log "Please run this installer script again to continue"
 	exit 1
@@ -239,34 +242,27 @@ else
 	log "nix is healthy, continuing"
 fi
 
-# installing nix-darwin adds the darwin-rebuild command into $PATH
-if ! command -v darwin-rebuild &>/dev/null; then
-	isRequired 'nix-darwin' 'installNixDarwin'
-else
-	log "nix-darwin detected, skipping install"
-fi
+# nix-darwin is what actually does the configuration
+checkDep 'nix-darwin' 'command -v darwin-rebuild' 'installNixDarwin'
 
-if ! command -v bw &>/dev/null; then
-	isRequired 'bitwarden-cli' 'nix-env -i bitwarden-cli'
-else
-	log "bitwarden-cli detected, skipping install"
-fi
+# bitwarden-cli is needed to pull down secrets with chezmoi
+checkDep 'bitwarden-cli' 'command -v bw' 'nix-env -i bitwarden-cli'
 
-if ! command -v brew &>/dev/null; then
-	isRequired 'brew' 'installBrew'
-else
-	log "brew detected, skipping install"
-fi
+# brew is needed for installing GUI applications (casks)
+checkDep 'brew' 'command -v brew' 'installBrew'
 
+# needs to be unlocked before calling chezmoi
 log "Logging into bitwarden..."
 bwUnlock
 
 log "Fetching dotfiles..."
 nix shell nixpkgs#chezmoi -c chezmoi init "${dotfiles}"
 
+# implicitely calls `nix-darwin rebuild`` and `brew bundle install``
 log "Applying dotfiles..."
 nix shell nixpkgs#chezmoi -c chezmoi apply
 
+# creates the dotfile structure the first time it's run
 log "Initializing GPG..."
 gpg-agent --daemon
 
