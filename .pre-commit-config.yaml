@@ -36,3 +36,10 @@ repos:
         args: [-w]
         language: system
         types: [shell]
+-   repo: local
+    hooks:
+    -   id: shellcheck
+        name: shellcheck
+        entry: shellcheck
+        language: system
+        types: [shell]

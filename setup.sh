@@ -7,6 +7,7 @@
 #/ A simple installation script for configuring my personal development
 #/ environment on an M1 based Apple MacBook.
 #/
+# shellcheck disable=SC2155
 
 set -o errexit  # abort on nonzero exitstatus
 set -o nounset  # abort on unbound variable
@@ -119,10 +120,10 @@ installXcode() {
 installNix() {
 	local nixURL="${nixReleaseBase}/nix/nix-${nixVer}/install"
 	local checksumURL="${nixReleaseBase}/nix/nix-${nixVer}/install.sha256"
+	local sha="$(curl "${checksumURL}")"
 
 	log "Downloading install script from ${nixURL}..."
 	curl "${nixURL}" -o "${tmpDir}/nix.sh" &>/dev/null
-	local sha=$(curl "${checksumURL}")
 
 	log "Validating checksum..."
 	if ! echo "${sha}  ${tmpDir}/nix.sh" | shasum -a 256 -c; then
@@ -148,10 +149,10 @@ installNixDarwin() {
 	/usr/bin/sudo mv /etc/nix/nix.conf /etc/nix/nix.conf.backup
 
 	log 'Building nix-darwin installer...'
-	cd ${tmpDir} && nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
+	cd "${tmpDir}" && nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
 
 	log 'Running nix-darwin installer...'
-	{$tmpDir}/result/bin/darwin-installer
+	"{$tmpDir}"/result/bin/darwin-installer
 
 	# nix-darwin manages nix itself, so we can remove the global version now
 	log "Removing redundant nix version..."
@@ -181,6 +182,7 @@ installBrew() {
 	bash "${tmpDir}/brew.sh"
 
 	log "Configuring environment..."
+	# shellcheck disable=SC2016
 	echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"$HOME/.bash_profile"
 	eval "$(/opt/homebrew/bin/brew shellenv)"
 }
