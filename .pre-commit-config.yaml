@@ -25,6 +25,6 @@ repos:
     hooks:
     -   id: markdownlint
         name: markdownlint
-        entry: ./node_modules/.bin/markdownlint
+        entry: markdownlint
         language: system
         types: [markdown]
