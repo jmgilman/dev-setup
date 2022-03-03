@@ -207,9 +207,9 @@ installBrew() {
 # Attempts to login or unlock Bitwarden using the CLI
 bwUnlock() {
 	# Unlock -> login -> check if already unlocked -> die because unreachable
-	if bw status | grep "locked"; then
+	if bw status | grep "locked" &>/dev/null; then
 		export BW_SESSION="$(bw unlock --raw)"
-	elif bw status | grep "unauthenticated"; then
+	elif bw status | grep "unauthenticated" &>/dev/null; then
 		export BW_SESSION="$(bw login --raw)"
 	elif [[ -z "${BW_SESSION}" ]]; then
 		die "Unknown bitwarden status"
@@ -255,15 +255,19 @@ checkDep 'brew' 'command -v brew' 'installBrew'
 log "Logging into bitwarden..."
 bwUnlock
 
-log "Fetching dotfiles..."
-nix shell nixpkgs#chezmoi -c chezmoi init "${dotfiles}"
+if [[ ! -d "$HOME/.local/share/chezmoi" ]]; then
+	log "Fetching dotfiles..."
+	nix shell nixpkgs#chezmoi -c chezmoi init "${dotfiles}"
+fi
 
 # implicitely calls `nix-darwin rebuild`` and `brew bundle install``
 log "Applying dotfiles..."
 nix shell nixpkgs#chezmoi -c chezmoi apply
 
 # creates the dotfile structure the first time it's run
-log "Initializing GPG..."
-gpg-agent --daemon
+if [[ ! -d "$HOME/.gnupg" ]]; then
+	log "Initializing GPG..."
+	gpg-agent --daemon
+fi
 
 success 'Done!'
