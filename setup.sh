@@ -187,6 +187,20 @@ installBrew() {
 	eval "$(/opt/homebrew/bin/brew shellenv)"
 }
 
+# Usage bwUnlock
+#
+# Attempts to login or unlock Bitwarden using the CLI
+bwUnlock() {
+	# Unlock -> login -> check if already unlocked -> die because unreachable
+	if bw status | grep "locked"; then
+		export BW_SESSION="$(bw unlock --raw)"
+	elif bw status | grep "unauthenticated"; then
+		export BW_SESSION="$(bw login --raw)"
+	elif [[ -z "${BW_SESSION}" ]]; then
+		die "Unknown bitwarden status"
+	fi
+}
+
 # need a scratch space for downloading files
 tmpDir=$(mktemp -d -t dev-setup-XXXXXXXXXX)
 if [[ ! -d "$tmpDir" ]]; then
@@ -243,6 +257,9 @@ if ! command -v brew &>/dev/null; then
 else
 	log "brew detected, skipping install"
 fi
+
+log "Logging into bitwarden..."
+bwUnlock
 
 log "Fetching dotfiles..."
 nix shell nixpkgs#chezmoi -c chezmoi init "${dotfiles}"
