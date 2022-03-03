@@ -28,3 +28,11 @@ repos:
         entry: markdownlint
         language: system
         types: [markdown]
+-   repo: local
+    hooks:
+    -   id: shfmt
+        name: shfmt
+        entry: shfmt
+        args: [-w]
+        language: system
+        types: [shell]

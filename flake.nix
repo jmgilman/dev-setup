@@ -23,7 +23,7 @@
         };
       in {
         devShell = pkgs.mkShell {
-          packages = [poetry pkgs.nodePackages.markdownlint-cli];
+          packages = [poetry pkgs.shfmt pkgs.nodePackages.markdownlint-cli];
         };
       }
     );
