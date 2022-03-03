@@ -43,3 +43,11 @@ repos:
         entry: shellcheck
         language: system
         types: [shell]
+-   repo: local
+    hooks:
+    -   id: shasum
+        name: shasum
+        entry: ./checksum.sh
+        language: system
+        files: setup.sh
+        pass_filenames: false
