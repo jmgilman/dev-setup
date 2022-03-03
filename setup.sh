@@ -154,6 +154,10 @@ installNix() {
 	log 'Adding experimental features: nix-command flakes'
 	mkdir -p ~/.config/nix
 	echo 'experimental-features = nix-command flakes' >>~/.config/nix/nix.conf
+
+	log 'Configuring environment...'
+	# shellcheck disable=SC1091
+	source /etc/zshrc
 }
 
 # Usage: installNixDarwin
@@ -167,7 +171,7 @@ installNixDarwin() {
 	cd "${tmpDir}" && nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
 
 	log 'Running nix-darwin installer...'
-	"{$tmpDir}"/result/bin/darwin-installer
+	cd "${tmpDir}" && "./result/bin/darwin-installer"
 
 	# nix-darwin manages nix itself, so we can remove the global version now
 	log "Removing redundant nix version..."
@@ -177,6 +181,10 @@ installNixDarwin() {
 	log "Adding home-manager channel..."
 	nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
 	nix-channel --update
+
+	log "Configuring environment..."
+	# shellcheck disable=SC1091
+	source /etc/zshenv
 }
 
 # Usage installBrew
@@ -217,8 +225,8 @@ bwUnlock() {
 }
 
 # need a scratch space for downloading files
-tmpDir=$(mktemp -d -t dev-setup-XXXXXXXXXX)
-if [[ ! -d "$tmpDir" ]]; then
+tmpDir="$(mktemp -d -t dev-setup-XXXXXXXXXX)"
+if [[ ! -d "${tmpDir}" ]]; then
 	die "Failed creating a temporary directory; cannot continue"
 fi
 
