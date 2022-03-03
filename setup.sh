@@ -156,8 +156,14 @@ installNix() {
 	echo 'experimental-features = nix-command flakes' >>~/.config/nix/nix.conf
 
 	log 'Configuring environment...'
+	set +o errexit
+	set +o nounset
+	set +o pipefail
 	# shellcheck disable=SC1091
 	source /etc/bashrc
+	set -o errexit
+	set -o nounset
+	set -o pipefail
 }
 
 # Usage: installNixDarwin
@@ -178,8 +184,14 @@ installNixDarwin() {
 	/usr/bin/sudo -i nix-env -e nix
 
 	log "Configuring environment..."
+	set +o errexit
+	set +o nounset
+	set +o pipefail
 	# shellcheck disable=SC1091
-	source /etc/bashrc
+	source /etc/static/bashrc
+	set -o errexit
+	set -o nounset
+	set -o pipefail
 
 	# home-manager is required by the current configuration
 	log "Adding home-manager channel..."
