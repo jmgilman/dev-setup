@@ -61,7 +61,7 @@ die() {
 #
 # Asks the user to confirm via y/n syntax. Exits if answer is no.
 yesno() {
-	read -p "${*} [y/n] " -r
+	read -p "${*} [y/n] " -n 2 -r
 	printf "\n"
 	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 		exit 1
