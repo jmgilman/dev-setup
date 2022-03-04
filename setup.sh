@@ -263,17 +263,6 @@ checkDep 'rosetta' '/usr/bin/pgrep oahd' 'softwareupdate --install-rosetta'
 # nix is needed to configure the entire system
 checkDep 'nix' 'command -v nix' 'installNix'
 
-# a better check to validate nix is actually installed correctly
-if ! nix doctor &>/dev/null; then
-	error 'nix doctor reports an unhealthy nix installation'
-	tryInstall 'nix' 'installNix'
-
-	log "Please run this installer script again to continue"
-	exit 1
-else
-	log "nix is healthy, continuing"
-fi
-
 # nix-darwin is what actually does the configuration
 checkDep 'nix-darwin' 'command -v darwin-rebuild' 'installNixDarwin'
 
