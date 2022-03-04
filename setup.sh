@@ -192,12 +192,6 @@ installNixDarwin() {
 	set -o errexit
 	set -o nounset
 	set -o pipefail
-
-	log "Building flake..."
-	cd "${tmpDir}" && nix build "${HOME}/.config/darwin\#darwinConfigurations.Joshuas-MacBook-Pro.system"
-
-	log "Activating flake..."
-	cd "${tmpDir}" && ./result/sw/bin/darwin-rebuild switch --flake "${HOME}/.config/darwin"
 }
 
 # Usage installBrew
@@ -280,6 +274,12 @@ bwUnlock
 if [[ ! -d "$HOME/.local/share/chezmoi" ]]; then
 	log "Fetching dotfiles..."
 	nix shell nixpkgs#chezmoi -c chezmoi init "${dotfiles}"
+
+	nix shell nixpkgs#chezmoi -c chezmoi apply "${HOME}/.config/darwin"
+
+	log "Bootstrapping nix-darwin flake..."
+	cd "${tmpDir}" && nix build "${HOME}/.config/darwin#darwinConfigurations.Joshuas-MacBook-Pro.system"
+	cd "${tmpDir}" && ./result/sw/bin/darwin-rebuild switch --flake "${HOME}/.config/darwin#Joshuas-MacBook-Pro"
 fi
 
 # implicitely calls `nix-darwin rebuild`` and `brew bundle install``
