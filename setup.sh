@@ -218,8 +218,20 @@ installBrew() {
 
 	log "Configuring environment..."
 	# shellcheck disable=SC2016
-	echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"$HOME/.bash_profile"
+	echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"${HOME}/.bash_profile"
+	# shellcheck disable=SC2016
+	echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"${HOME}/.zprofile"
 	eval "$(/opt/homebrew/bin/brew shellenv)"
+
+	log "Configuring environment..."
+	set +o errexit
+	set +o nounset
+	set +o pipefail
+	# shellcheck disable=SC1091
+	source "${HOME}/.bash_profile"
+	set -o errexit
+	set -o nounset
+	set -o pipefail
 }
 
 # Usage bwUnlock
