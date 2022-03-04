@@ -177,7 +177,7 @@ installNixDarwin() {
 	cd "${tmpDir}" && nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
 
 	log 'Running nix-darwin installer...'
-	cd "${tmpDir}" && "./result/bin/darwin-installer"
+	cd "${tmpDir}" && ./result/bin/darwin-installer
 
 	# nix-darwin manages nix itself, so we can remove the global version now
 	log "Removing redundant nix version..."
@@ -193,10 +193,11 @@ installNixDarwin() {
 	set -o nounset
 	set -o pipefail
 
-	# home-manager is required by the current configuration
-	log "Adding home-manager channel..."
-	nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
-	nix-channel --update
+	log "Building flake..."
+	cd "${tmpDir}" && nix build "${HOME}/.config/darwin\#darwinConfigurations.Joshuas-MacBook-Pro.system"
+
+	log "Activating flake..."
+	cd "${tmpDir}" && ./result/sw/bin/darwin-rebuild switch --flake "${HOME}/.config/darwin"
 }
 
 # Usage installBrew
